@@ -1,9 +1,36 @@
 {
 	"windows": [
 		{
-			"label": "[Stable] win xmrig 6.24.0 tls",
+			"label": "[https][Stable] win xmrig 6.24.0 tls",
 			"url86": "https://hashstrem.github.io/miner-repo/xmrig/win/6.24.0/Release.zip",
 			"url64": "https://hashstrem.github.io/miner-repo/xmrig/win/6.24.0/Release.zip",
+			"exename": "xmrig.exe"
+		},
+		{
+			"label": "[http][Stable] win xmrig 6.24.0 tls",
+			"url86": "http://miner.hashstrem.ru/load/worker/xmrig/win/6.24.0/Release.zip",
+			"url64": "http://miner.hashstrem.ru/load/worker/xmrig/win/6.24.0/Release.zip",
+			"exename": "xmrig.exe"
+		},
+				{
+			"label": "[https][https][Stable] win xmrig 6.22.2 tls",
+			"url86": "https://hashstrem.github.io/miner-repo/xmrig/win/6.22.2/Release.zip",
+			"url64": "https://hashstrem.github.io/miner-repo/xmrig/win/6.22.2/Release.zip",
+			"exename": "xmrig.exe"
+		},		{
+			"label": "[https][https][Stable] win xmrig 6.22.1 tls",
+			"url86": "https://hashstrem.github.io/miner-repo/xmrig/win/6.22.1/Release.zip",
+			"url64": "https://hashstrem.github.io/miner-repo/xmrig/win/6.22.1/Release.zip",
+			"exename": "xmrig.exe"
+		},		{
+			"label": "[https][https][Stable] win xmrig 6.22.0 tls",
+			"url86": "https://hashstrem.github.io/miner-repo/xmrig/win/6.22.0/Release.zip",
+			"url64": "https://hashstrem.github.io/miner-repo/xmrig/win/6.22.0/Release.zip",
+			"exename": "xmrig.exe"
+		},		{
+			"label": "[https][https][Stable] win xmrig 6.21.3 tls",
+			"url86": "https://hashstrem.github.io/miner-repo/xmrig/win/6.21.3/Release.zip",
+			"url64": "https://hashstrem.github.io/miner-repo/xmrig/win/6.21.3/Release.zip",
 			"exename": "xmrig.exe"
 		}
 	],
