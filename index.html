@@ -55,66 +55,71 @@
         const FOLDER = 'xmrig';            // Папка, в которой лежат файлы (без слешей)
 
         async function fetchRepoFiles() {
-            const tableBody = document.getElementById('file-table-body');
-            const url = `https://api.github.com/repos/${USER}/${REPO}/contents/${FOLDER}`;
+        const tableBody = document.getElementById('file-table-body');
+        // Используем trees/main с параметром recursive, чтобы увидеть всё дерево файлов
+        // Вместо 'main' может быть 'master', если у вас старый репозиторий
+        const branch = 'main'; 
+        const url = `https://api.github.com/repos/${USER}/${REPO}/git/trees/${branch}?recursive=1`;
 
-            try {
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`Ошибка API: ${response.status}. Проверьте настройки USER и REPO.`);
-                }
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Ошибка API: ${response.status}`);
 
-                const files = await response.json();
-                tableBody.innerHTML = ''; // Удаляем надпись "Загрузка"
+            const data = await response.json();
+            tableBody.innerHTML = '';
 
-                if (files.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5" class="py-10 text-center">Папка пуста</td></tr>';
-                    return;
-                }
+            // Фильтруем: берем только объекты типа 'blob' (файлы), 
+            // которые находятся внутри папки FOLDER
+            const files = data.tree.filter(item => 
+                item.type === 'blob' && 
+                item.path.startsWith(FOLDER + '/') &&
+                !item.path.includes('/.') // игнорируем скрытые файлы
+            );
 
-                files.forEach(file => {
-                    // Пропускаем папки и скрытые файлы
-                    if (file.type === 'dir' || file.name.startsWith('.')) return;
-
-                    const size = (file.size / (1024 * 1024)).toFixed(2);
-                    const ext = file.name.split('.').pop().toLowerCase();
-                    
-                    // Определяем иконку/метку ОС по расширению
-                    let osTag = '<span class="text-slate-400">Binary</span>';
-                    if (ext === 'exe' || ext === 'msi') osTag = '<span class="text-blue-400">Windows</span>';
-                    if (ext === 'zip' || ext === 'gz' || ext === 'tar') osTag = '<span class="text-orange-400">Archive</span>';
-                    if (file.name.includes('linux')) osTag = '<span class="text-green-400">Linux</span>';
-
-                    const row = `
-                        <tr class="hover:bg-slate-800/50 transition border-b border-slate-800/50">
-                            <td class="py-4 px-2 font-mono text-blue-300 font-medium">${file.name}</td>
-                            <td class="py-4 px-2 text-sm">${osTag}</td>
-                            <td class="py-4 px-2 text-sm text-slate-400">${size} MB</td>
-                            <td class="py-4 px-2 text-xs text-slate-600 font-mono text-center">${file.sha.substring(0, 7)}</td>
-                            <td class="py-4 px-2 text-right">
-                                <a href="${file.download_url}" 
-                                   class="inline-block bg-blue-600 hover:bg-blue-500 text-white px-5 py-1.5 rounded-md text-sm font-semibold transition shadow-lg shadow-blue-900/20"
-                                   download>
-                                   Скачать
-                                </a>
-                            </td>
-                        </tr>
-                    `;
-                    tableBody.innerHTML += row;
-                });
-
-            } catch (error) {
-                console.error(error);
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="py-10 text-center text-red-400 bg-red-900/10">
-                            ${error.message}<br>
-                            <small class="text-slate-500">Убедитесь, что репозиторий публичный и путь к папке верный.</small>
-                        </td>
-                    </tr>`;
+            if (files.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="py-10 text-center">Файлы не найдены</td></tr>';
+                return;
             }
+
+            files.forEach(file => {
+                // Извлекаем чистое имя файла из полного пути (например, "bin/v1/miner.exe" -> "miner.exe")
+                const fileName = file.path.split('/').pop();
+                // Показываем путь для ясности (например, "v1/miner.exe")
+                const displayPath = file.path.replace(FOLDER + '/', '');
+                
+                const ext = fileName.split('.').pop().toLowerCase();
+                const downloadUrl = `https://raw.githubusercontent.com/${USER}/${REPO}/${branch}/${file.path}`;
+                
+                let osTag = '<span class="text-slate-400 text-xs">Other</span>';
+                if (['exe', 'msi'].includes(ext)) osTag = '<span class="text-blue-400 text-xs">Windows</span>';
+                if (['zip', 'gz', 'tar', '7z'].includes(ext)) osTag = '<span class="text-orange-400 text-xs">Archive</span>';
+                if (file.path.toLowerCase().includes('linux')) osTag = '<span class="text-green-400 text-xs">Linux</span>';
+
+                const row = `
+                    <tr class="hover:bg-slate-800/50 transition border-b border-slate-800/50">
+                        <td class="py-4 px-2">
+                            <div class="font-mono text-blue-300 font-medium">${fileName}</div>
+                            <div class="text-[10px] text-slate-500 uppercase tracking-wider">${displayPath}</div>
+                        </td>
+                        <td class="py-4 px-2">${osTag}</td>
+                        <td class="py-4 px-2 text-sm text-slate-400">--</td> 
+                        <td class="py-4 px-2 text-xs text-slate-600 font-mono text-center">${file.sha.substring(0, 7)}</td>
+                        <td class="py-4 px-2 text-right">
+                            <a href="${downloadUrl}" 
+                               class="inline-block bg-blue-600 hover:bg-blue-500 text-white px-5 py-1.5 rounded-md text-sm font-semibold transition shadow-lg shadow-blue-900/20">
+                               Скачать
+                            </a>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+
+        } catch (error) {
+            console.error(error);
+            tableBody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-red-400">${error.message}</td></tr>`;
         }
+    }
 
         // Запуск при загрузке страницы
         fetchRepoFiles();
