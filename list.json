@@ -1,0 +1,42 @@
+{
+	"windows": [
+		{
+			"label": "[Stable] win xmrig 6.24.0 tls",
+			"url86": "http://miner.hashstrem.ru/load/worker/xmrig/win/6.24.0/Release.zip",
+			"url64": "http://miner.hashstrem.ru/load/worker/xmrig/win/6.24.0/Release.zip",
+			"exename": "xmrig.exe"
+		},
+		{
+			"label": "[Stable] win xmrig 6.22.2 tls",
+			"url86": "http://miner.hashstrem.ru/load/worker/xmrig/win/6.22.2/Release.zip",
+			"url64": "http://miner.hashstrem.ru/load/worker/xmrig/win/6.22.2/Release.zip",
+			"exename": "xmrig.exe"
+		},
+		{
+			"label": "[Stable] win xmrig 6.22.1 tls",
+			"url86": "http://miner.hashstrem.ru/load/worker/xmrig/win/6.22.1/Release.zip",
+			"url64": "http://miner.hashstrem.ru/load/worker/xmrig/win/6.22.1/Release.zip",
+			"exename": "xmrig.exe"
+		},
+		{
+			"label": "[Stable] win xmrig 6.22.0 tls",
+			"url86": "http://miner.hashstrem.ru/load/worker/xmrig/win/6.22.0/Release.zip",
+			"url64": "http://miner.hashstrem.ru/load/worker/xmrig/win/6.22.0/Release.zip",
+			"exename": "xmrig.exe"
+		}
+	],
+	"linux": [
+		{
+		"label": "[Stable] linux xmrig 6.22.0 tls",
+		"url64": "http://miner.hashstrem.ru/load/worker/xmrig/linux/6.20.0/xmrig.tgz",
+		"exename": "xmrig"
+	},
+	{
+		"label": "[Stable] linux xmrig 6.6.2 tls",
+		"url64": "http://miner.hashstrem.ru/load/worker/xmrig/linux/6.6.2/xmrig.tar",
+		"exename": "xmrig"
+	}
+]
+
+
+}
