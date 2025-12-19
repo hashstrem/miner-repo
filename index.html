@@ -48,66 +48,74 @@
         </footer>
     </div>
 
-    <script>
-        // === НАСТРОЙКИ ===
-        const USER = 'hashstrem'; // Например: 'antminer-dev'
-        const REPO = 'miner-repo'; // Например: 'miner-builds'
-        const FOLDER = 'xmrig';            // Папка, в которой лежат файлы (без слешей)
+<script>
+    // === НАСТРОЙКИ ===
+    const USER = 'hashstrem'; 
+    const REPO = 'miner-repo'; 
+    const FOLDER = 'xmrig';     
 
-        async function fetchRepoFiles() {
+    async function fetchRepoFiles() {
         const tableBody = document.getElementById('file-table-body');
-        // Используем trees/main с параметром recursive, чтобы увидеть всё дерево файлов
-        // Вместо 'main' может быть 'master', если у вас старый репозиторий
         const branch = 'main'; 
-        const url = `https://api.github.com/repos/${USER}/${REPO}/git/trees/${branch}?recursive=1`;
+        // Добавляем timestamp, чтобы избежать агрессивного кэширования API
+        const url = `https://api.github.com/repos/${USER}/${REPO}/git/trees/${branch}?recursive=1&t=${new Date().getTime()}`;
 
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error(`Ошибка API: ${response.status}`);
+            if (!response.ok) {
+                if(response.status === 403) throw new Error("Лимит запросов API исчерпан. Попробуйте позже.");
+                throw new Error(`Ошибка API: ${response.status}`);
+            }
 
             const data = await response.json();
             tableBody.innerHTML = '';
 
-            // Фильтруем: берем только объекты типа 'blob' (файлы), 
-            // которые находятся внутри папки FOLDER
             const files = data.tree.filter(item => 
                 item.type === 'blob' && 
                 item.path.startsWith(FOLDER + '/') &&
-                !item.path.includes('/.') // игнорируем скрытые файлы
+                !item.path.split('/').pop().startsWith('.')
             );
 
             if (files.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="5" class="py-10 text-center">Файлы не найдены</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="5" class="py-10 text-center text-slate-500">В папке "${FOLDER}" файлов не найдено</td></tr>';
                 return;
             }
 
             files.forEach(file => {
-                // Извлекаем чистое имя файла из полного пути (например, "bin/v1/miner.exe" -> "miner.exe")
-                const fileName = file.path.split('/').pop();
-                // Показываем путь для ясности (например, "v1/miner.exe")
-                const displayPath = file.path.replace(FOLDER + '/', '');
+                const pathParts = file.path.split('/');
+                const fileName = pathParts.pop();
+                const displayPath = pathParts.join('/') + '/';
                 
                 const ext = fileName.split('.').pop().toLowerCase();
-                const downloadUrl = `https://raw.githubusercontent.com/${USER}/${REPO}/${branch}/${file.path}`;
+                // Кодируем путь, если там есть пробелы или спецсимволы
+                const safePath = encodeURI(file.path);
+                const downloadUrl = `https://raw.githubusercontent.com/${USER}/${REPO}/${branch}/${safePath}`;
                 
-                let osTag = '<span class="text-slate-400 text-xs">Other</span>';
-                if (['exe', 'msi'].includes(ext)) osTag = '<span class="text-blue-400 text-xs">Windows</span>';
-                if (['zip', 'gz', 'tar', '7z'].includes(ext)) osTag = '<span class="text-orange-400 text-xs">Archive</span>';
-                if (file.path.toLowerCase().includes('linux')) osTag = '<span class="text-green-400 text-xs">Linux</span>';
+                // Расчет размера (если API его вернуло)
+                let fileSizeStr = '--';
+                if (file.size) {
+                    fileSizeStr = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+                }
+
+                let osTag = '<span class="text-slate-500 text-[10px] border border-slate-700 px-1 rounded">DATA</span>';
+                if (['exe', 'msi'].includes(ext)) osTag = '<span class="text-blue-400 text-[10px] border border-blue-900 px-1 rounded">WIN</span>';
+                if (['zip', 'gz', 'tar', '7z'].includes(ext)) osTag = '<span class="text-orange-400 text-[10px] border border-orange-900 px-1 rounded">ARC</span>';
+                if (file.path.toLowerCase().includes('linux')) osTag = '<span class="text-green-400 text-[10px] border border-green-900 px-1 rounded">LINUX</span>';
 
                 const row = `
-                    <tr class="hover:bg-slate-800/50 transition border-b border-slate-800/50">
+                    <tr class="hover:bg-slate-800/40 transition border-b border-slate-800/50">
                         <td class="py-4 px-2">
-                            <div class="font-mono text-blue-300 font-medium">${fileName}</div>
-                            <div class="text-[10px] text-slate-500 uppercase tracking-wider">${displayPath}</div>
+                            <div class="font-mono text-blue-300 font-medium break-all">${fileName}</div>
+                            <div class="text-[9px] text-slate-500 uppercase tracking-tighter opacity-60">${displayPath}</div>
                         </td>
                         <td class="py-4 px-2">${osTag}</td>
-                        <td class="py-4 px-2 text-sm text-slate-400">--</td> 
+                        <td class="py-4 px-2 text-sm text-slate-400 whitespace-nowrap">${fileSizeStr}</td>
                         <td class="py-4 px-2 text-xs text-slate-600 font-mono text-center">${file.sha.substring(0, 7)}</td>
                         <td class="py-4 px-2 text-right">
                             <a href="${downloadUrl}" 
-                               class="inline-block bg-blue-600 hover:bg-blue-500 text-white px-5 py-1.5 rounded-md text-sm font-semibold transition shadow-lg shadow-blue-900/20">
-                               Скачать
+                               download="${fileName}"
+                               class="inline-block bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded text-xs font-bold transition shadow-lg shadow-blue-900/20">
+                               СКАЧАТЬ
                             </a>
                         </td>
                     </tr>
@@ -116,13 +124,11 @@
             });
 
         } catch (error) {
-            console.error(error);
-            tableBody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-red-400">${error.message}</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-red-400 bg-red-900/5">${error.message}</td></tr>`;
         }
     }
 
-        // Запуск при загрузке страницы
-        fetchRepoFiles();
-    </script>
+    fetchRepoFiles();
+</script>
 </body>
 </html>
