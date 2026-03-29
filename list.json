@@ -2,8 +2,8 @@
 	"windows": [
 		{
 			"label": "[Stable] win xmrig 6.26.0 tls",
-			"url86": "https://hashstrem.github.io/miner-repo/xmrig/win/6.26.0/xmrig.zip",
-			"url64": "https://hashstrem.github.io/miner-repo/xmrig/win/6.26.0/xmrig.zip",
+			"url86": "https://hashstrem.github.io/miner-repo/xmrig/win/6.26.0/Release.zip",
+			"url64": "https://hashstrem.github.io/miner-repo/xmrig/win/6.26.0/Release.zip",
 			"exename": "xmrig.exe"
 		},
 			{
